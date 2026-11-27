@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фитнес-трекер — учёт тренировок и прогресса</title>
+    <meta name="description" content="FitTrack — фитнес-трекер для студентов и любителей спорта: учёт тренировок, графики прогресса, готовые программы занятий и умные напоминания.">
+    <meta name="keywords" content="фитнес-трекер, дневник тренировок, программы тренировок, учёт тренировок, прогресс, фитнес для студентов, FitTrack">
+    <style>
+        /* ----- Сброс и базовые настройки ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;      /* плавная прокрутка */
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ----- Контейнер ----- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ----- Типографика и кнопки ----- */
+        h1, h2, h3 {
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        h1 {
+            font-size: clamp(2.2rem, 6vw, 3.8rem);
+        }
+
+        h2 {
+            font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+            margin-bottom: 16px;
+        }
+
+        h3 {
+            font-size: 1.35rem;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 1.15rem;
+            color: #475569;
+            max-width: 640px;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 32px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 60px;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: #6366f1;
+            color: #ffffff;
+            box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -6px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #6366f1;
+            box-shadow: none;
+            border: 2px solid #6366f1;
+        }
+
+        .btn-outline:hover {
+            background: #6366f1;
+            color: #ffffff;
+            box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.3);
+        }
+
+        /* ----- Шапка ----- */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 12px 0;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;   /* опорная точка для выпадающего меню */
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.03em;
+            text-decoration: none;
+            color: #0f172a;
+        }
+
+        .logo-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.3rem;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #334155;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+
+        .nav a:hover {
+            color: #6366f1;
+        }
+
+        .nav .btn {
+            padding: 10px 22px;
+            font-size: 0.95rem;
+        }
+
+        /* Кнопка бургер-меню: на десктопе скрыта, на мобильных показывается */
+        .menu-toggle {
+            display: none;
+            font-size: 1.8rem;
+            line-height: 1;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #0f172a;
+            padding: 4px 8px;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .menu-toggle:hover {
+            background: #f1f5f9;
+        }
+
+        /* ----- Главный экран (Hero) ----- */
+        .hero {
+            padding: 80px 0 100px;
+            background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .hero-text {
+            flex: 1 1 50%;
+        }
+
+        .hero-text h1 {
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #0f172a 30%, #4f46e5 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-text p {
+            font-size: 1.2rem;
+            color: #475569;
+            max-width: 540px;
+            margin-bottom: 32px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .hero-image {
+            flex: 1 1 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-image img {
+            width: 100%;
+            max-width: 420px;
+            height: auto;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            object-fit: cover;
+            aspect-ratio: 4/3;
+            background: #e2e8f0;
+            /* Заглушка, если нет картинки */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="%23e2e8f0"/><text x="200" y="150" font-family="Inter, sans-serif" font-size="18" fill="%2394a3b8" text-anchor="middle" dy=".3em">Фитнес-трекер</text></svg>');
+            background-size: cover;
+        }
+
+        /* ----- Общие секции ----- */
+        .section {
+            padding: 80px 0;
+        }
+
+        .section-light {
+            background: #ffffff;
+        }
+
+        .section-gray {
+            background: #f8fafc;
+        }
+
+        /* О сервисе */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .about-image {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 32px;
+            padding: 40px 30px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            box-shadow: 0 20px 40px -12px rgba(99, 102, 241, 0.4);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .about-text p {
+            font-size: 1.1rem;
+            color: #475569;
+            margin-bottom: 20px;
+        }
+
+        /* Возможности */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 28px;
+            margin-top: 20px;
+        }
+
+        .feature-card {
+            background: #ffffff;
+            padding: 32px 28px;
+            border-radius: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid #eef2f6;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 30px -12px rgba(99, 102, 241, 0.15);
+        }
+
+        .feature-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            background: #eef2ff;
+            border-radius: 16px;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #6366f1;
+        }
+
+        .feature-card p {
+            color: #475569;
+        }
+
+        /* Тарифы */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 28px;
+            margin-top: 20px;
+        }
+
+        .pricing-card {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 36px 28px;
+            border: 1px solid #eef2f6;
+            transition: box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pricing-card:hover {
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.08);
+        }
+
+        .pricing-card.popular {
+            border: 2px solid #6366f1;
+            position: relative;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 24px;
+            background: #6366f1;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 40px;
+            letter-spacing: 0.02em;
+        }
+
+        .price {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin: 16px 0 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .price span {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #64748b;
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            margin: 24px 0 32px;
+            flex-grow: 1;
+        }
+
+        .pricing-card li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            color: #334155;
+        }
+
+        .pricing-card li::before {
+            content: "✓";
+            color: #6366f1;
+            font-weight: 700;
+        }
+
+        /* Контакты */
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: start;
+        }
+
+        .contact-info p {
+            margin-bottom: 24px;
+            font-size: 1.1rem;
+            color: #475569;
+        }
+
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 24px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 1.05rem;
+        }
+
+        .contact-icon {
+            width: 44px;
+            height: 44px;
+            background: #eef2ff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .contact-form {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 28px;
+            box-shadow: 0 10px 25px -8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2f6;
+        }
+
+        .contact-form h3 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 1rem;
+            background: #f8fafc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            background: #ffffff;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .contact-form .btn {
+            width: 100%;
+        }
+
+        /* Подвал */
+        .footer {
+            padding: 40px 0;
+            background: #ffffff;
+            border-top: 1px solid #eef2f6;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        /* Анимация появления при скролле (простая) */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ----- Адаптивность ----- */
+        @media (max-width: 992px) {
+            .hero-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero-text p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-actions {
+                justify-content: center;
+            }
+
+            .hero-image {
+                flex: 1 1 100%;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-image {
+                order: 2;
+                padding: 32px;
+            }
+
+            .contacts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            /* На мобильных навигация превращается в выпадающее меню */
+            .nav {
+                position: absolute;
+                top: calc(100% + 12px);
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                background: #ffffff;
+                border: 1px solid #eef2f6;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.18);
+                padding: 8px;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-8px);
+                transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+            }
+
+            /* Открытое состояние меню */
+            .nav.open {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+
+            .nav a {
+                padding: 12px 16px;
+                border-radius: 12px;
+            }
+
+            .nav a:hover {
+                background: #f8fafc;
+            }
+
+            .nav .btn {
+                margin-top: 8px;
+                width: 100%;
+                padding: 12px 22px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .section {
+                padding: 56px 0;
+            }
+
+            .hero {
+                padding: 48px 0 64px;
+            }
+
+            .hero-image img {
+                max-width: 320px;
+            }
+
+            .btn {
+                padding: 12px 24px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+
+            .about-image {
+                padding: 24px 20px;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .feature-card {
+                padding: 24px 20px;
+            }
+
+            .pricing-card {
+                padding: 28px 20px;
+            }
+        }
+
+        /* Утилитарный отступ */
+        .mt-1 {
+            margin-top: 8px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Шапка -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="#" class="logo">
+                <span class="logo-icon">💪</span>
+                <span>FitTrack</span>
+            </a>
+
+            <nav class="nav" id="primary-nav">
+                <a href="#about">О сервисе</a>
+                <a href="#features">Возможности</a>
+                <a href="#pricing">Тарифы</a>
+                <a href="#contacts">Контакты</a>
+                <a href="#pricing" class="btn">Начать</a>
+            </nav>
+
+            <button class="menu-toggle" type="button" aria-label="Открыть меню" aria-controls="primary-nav" aria-expanded="false">☰</button>
+        </div>
+    </header>
+
+    <!-- Главный экран -->
+    <section class="hero">
+        <div class="container hero-content">
+            <div class="hero-text fade-up">
+                <h1>Тренируйся умнее, достигай большего</h1>
+                <p>Фитнес-трекер для студентов и любителей спорта: записывай тренировки, следи за прогрессом и следуй готовым программам — всё в одном месте.</p>
+                <div class="hero-actions">
+                    <a href="#pricing" class="btn">Попробовать бесплатно</a>
+                    <a href="#about" class="btn btn-outline">Узнать больше</a>
+                </div>
+            </div>
+            <div class="hero-image fade-up">
+                <!-- Декоративное изображение-заглушка, легко заменить на реальное -->
+                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 300'><rect width='420' height='300' rx='24' fill='%236366f1'/><circle cx='210' cy='130' r='60' fill='%23ffffff' opacity='0.15'/><text x='210' y='145' font-family='Inter, sans-serif' font-size='22' fill='%23ffffff' text-anchor='middle' font-weight='600'>FitTrack App</text><text x='210' y='190' font-family='Inter, sans-serif' font-size='16' fill='%23ffffff' opacity='0.8' text-anchor='middle'>учёт · прогресс · программы</text></svg>"
+                     alt="Интерфейс фитнес-трекера">
+            </div>
+        </div>
+    </section>
+
+    <!-- О сервисе -->
+    <section id="about" class="section section-light">
+        <div class="container">
+            <h2 class="fade-up">О сервисе</h2>
+            <p class="section-subtitle fade-up">Мы создали инструмент, который помогает не бросить тренировки на полпути.</p>
+
+            <div class="about-grid">
+                <div class="about-text fade-up">
+                    <p><strong>FitTrack</strong> — это лёгкий и умный помощник для всех, кто хочет держать себя в форме. Забудьте о разрозненных заметках и таблицах: записывайте подходы, вес, самочувствие и получайте наглядную статистику.</p>
+                    <p>Сервис подходит студентам с гибким графиком и любителям активного образа жизни. Готовые программы занятий, напоминания и детальные отчёты помогут поддерживать мотивацию и видеть реальный прогресс.</p>
+                    <p>Присоединяйтесь к сообществу, которое уже тренируется осознанно.</p>
+                </div>
+                <div class="about-image fade-up">
+                    <div class="stat-item">
+                        <span class="stat-number">5 000+</span>
+                        <span class="stat-label">активных пользователей</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">120+</span>
+                        <span class="stat-label">готовых программ</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">98%</span>
+                        <span class="stat-label">отмечают прогресс</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Возможности -->
+    <section id="features" class="section section-gray">
+        <div class="container">
+            <h2 class="fade-up">Возможности</h2>
+            <p class="section-subtitle fade-up">Всё, что нужно для комфортных и результативных тренировок.</p>
+
+            <div class="features-grid">
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">📊</div>
+                    <h3>Дневник тренировок</h3>
+                    <p>Записывайте упражнения, подходы, вес и время. Вся история сохраняется и доступна в любой момент.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">📈</div>
+                    <h3>Прогресс в цифрах</h3>
+                    <p>Наглядные графики изменения веса, объёмов и повторений. Отслеживайте рост результатов.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">🏋️</div>
+                    <h3>Готовые программы</h3>
+                    <p>Выбирайте из десятков программ для дома и зала: сила, выносливость, гибкость — на любой уровень.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Напоминания</h3>
+                    <p>Гибкие уведомления о тренировках и отдыхе помогают не сбиться с ритма.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">👥</div>
+                    <h3>Сообщество</h3>
+                    <p>Делитесь достижениями, находите единомышленников и получайте поддержку.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">📱</div>
+                    <h3>Мобильный доступ</h3>
+                    <p>Приложение работает на всех устройствах — занимайтесь где угодно.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Тарифы -->
+    <section id="pricing" class="section section-light">
+        <div class="container">
+            <h2 class="fade-up">Тарифы</h2>
+            <p class="section-subtitle fade-up">Начните бесплатно и выберите удобный план, когда захотите большего.</p>
+
+            <div class="pricing-grid">
+                <!-- Базовый -->
+                <div class="pricing-card fade-up">
+                    <h3>Базовый</h3>
+                    <p style="color: #64748b;">Для знакомства</p>
+                    <div class="price">0 ₽<span>/мес</span></div>
+                    <ul>
+                        <li>Дневник тренировок</li>
+                        <li>Простые графики прогресса</li>
+                        <li>3 готовые программы</li>
+                        <li>Напоминания</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline" style="width:100%;">Выбрать</a>
+                </div>
+
+                <!-- Стандартный -->
+                <div class="pricing-card popular fade-up">
+                    <span class="popular-badge">Популярный</span>
+                    <h3>Стандарт</h3>
+                    <p style="color: #64748b;">Для регулярных занятий</p>
+                    <div class="price">299 ₽<span>/мес</span></div>
+                    <ul>
+                        <li>Всё из Базового</li>
+                        <li>Расширенная статистика</li>
+                        <li>Все программы (120+)</li>
+                        <li>Экспорт данных</li>
+                        <li>Приоритетная поддержка</li>
+                    </ul>
+                    <a href="#" class="btn" style="width:100%;">Выбрать</a>
+                </div>
+
+                <!-- Премиум -->
+                <div class="pricing-card fade-up">
+                    <h3>Премиум</h3>
+                    <p style="color: #64748b;">Максимум возможностей</p>
+                    <div class="price">599 ₽<span>/мес</span></div>
+                    <ul>
+                        <li>Всё из Стандарта</li>
+                        <li>Персональные планы</li>
+                        <li>Онлайн-консультации</li>
+                        <li>Анализ техники (видео)</li>
+                        <li>Ранний доступ к новинкам</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline" style="width:100%;">Выбрать</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Контакты -->
+    <section id="contacts" class="section section-gray">
+        <div class="container">
+            <h2 class="fade-up">Контакты</h2>
+            <p class="section-subtitle fade-up">Остались вопросы? Напишите нам, и мы поможем.</p>
+
+            <div class="contacts-grid">
+                <div class="contact-info fade-up">
+                    <p>Мы всегда рады обратной связи и готовы помочь с выбором тарифа или настройкой сервиса.</p>
+                    <div class="contact-details">
+                        <div class="contact-item">
+                            <div class="contact-icon">✉️</div>
+                            <span>support@fittrack.ru</span>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">📞</div>
+                            <span>+7 (800) 123-45-67</span>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">📍</div>
+                            <span>Москва, ул. Спортивная, 10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-form fade-up">
+                    <h3>Напишите нам</h3>
+                    <form action="#" method="post">
+                        <div class="form-group">
+                            <input type="text" placeholder="Ваше имя" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Email" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea placeholder="Сообщение" required></textarea>
+                        </div>
+                        <button type="submit" class="btn">Отправить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Подвал -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 FitTrack. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <!-- Анимация появления при скролле + мобильное меню -->
+    <script>
+        (function() {
+            const faders = document.querySelectorAll('.fade-up');
+            const appearOptions = {
+                threshold: 0.2,
+                rootMargin: "0px 0px -60px 0px"
+            };
+
+            const appearOnScroll = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                });
+            }, appearOptions);
+
+            faders.forEach(fader => {
+                appearOnScroll.observe(fader);
+            });
+        })();
+
+        /* Мобильное бургер-меню */
+        (function() {
+            const toggle = document.querySelector('.menu-toggle');
+            const nav = document.getElementById('primary-nav');
+            if (!toggle || !nav) return;
+
+            const closeMenu = () => {
+                nav.classList.remove('open');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Открыть меню');
+            };
+
+            toggle.addEventListener('click', () => {
+                const isOpen = nav.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', String(isOpen));
+                toggle.setAttribute('aria-label', isOpen ? 'Закрыть меню' : 'Открыть меню');
+            });
+
+            // Закрываем меню после клика по любой ссылке навигации
+            nav.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', closeMenu);
+            });
+
+            // Сбрасываем меню при переходе на десктопную ширину
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) closeMenu();
+            });
+        })();
+    </script>
+</body>
+</html>

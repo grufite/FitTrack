@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitTrack — фитнес-трекер для студентов и спортсменов</title>
+  <style>
+    /* ===== Базовые настройки ===== */
+    :root {
+      --accent: #4f8cff;
+      --accent-dark: #2f6fe4;
+      --dark: #14181f;
+      --text: #333a45;
+      --muted: #7a8291;
+      --bg-light: #f4f7fb;
+      --white: #ffffff;
+      --radius: 16px;
+      --shadow: 0 8px 24px rgba(20, 24, 31, .08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      line-height: 1.6;
+      background: var(--white);
+    }
+
+    section { padding: 80px 0; }
+    .container {
+      width: min(1100px, 90%);
+      margin: 0 auto;
+    }
+    h2 {
+      font-size: 2rem;
+      color: var(--dark);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto 48px;
+    }
+
+    /* ===== Шапка ===== */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 1px 8px rgba(0, 0, 0, .06);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* Бургер-меню (CSS-only) */
+    .burger-toggle { display: none; }
+    .burger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 6px;
+    }
+    .burger span {
+      width: 24px;
+      height: 2px;
+      background: var(--dark);
+      border-radius: 2px;
+    }
+
+    /* ===== Главный экран ===== */
+    .hero {
+      background: linear-gradient(135deg, #1d2b4f 0%, #4f8cff 100%);
+      color: var(--white);
+      padding: 110px 0 120px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .hero p {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      opacity: .9;
+      max-width: 640px;
+      margin: 0 auto 36px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 14px 36px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform .2s, box-shadow .2s, background .2s;
+    }
+    .btn-primary {
+      background: var(--white);
+      color: var(--accent-dark);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .25);
+    }
+    .btn-outline {
+      border: 2px solid var(--accent);
+      color: var(--accent);
+    }
+    .btn-outline:hover {
+      background: var(--accent);
+      color: var(--white);
+    }
+
+    /* ===== О сервисе ===== */
+    #about { background: var(--bg-light); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 32px;
+      align-items: center;
+    }
+    .about-text p { margin-bottom: 14px; }
+    .about-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      text-align: center;
+    }
+    .about-card .num {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .about-card span { color: var(--muted); }
+
+    /* ===== Возможности ===== */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 28px;
+    }
+    .feature {
+      background: var(--bg-light);
+      border-radius: var(--radius);
+      padding: 30px 24px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .feature:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow);
+    }
+    .feature .icon { font-size: 2.2rem; margin-bottom: 14px; }
+    .feature h3 {
+      font-size: 1.1rem;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+    .feature p { font-size: .95rem; color: var(--muted); }
+
+    /* ===== Тарифы ===== */
+    #pricing { background: var(--bg-light); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 28px;
+    }
+    .plan {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 36px 28px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .plan.popular {
+      border: 2px solid var(--accent);
+      position: relative;
+    }
+    .plan.popular::before {
+      content: "Хит";
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: var(--white);
+      font-size: .8rem;
+      font-weight: 600;
+      padding: 4px 16px;
+      border-radius: 20px;
+    }
+    .plan h3 { color: var(--dark); }
+    .price {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+    .price small { font-size: .9rem; color: var(--muted); font-weight: 400; }
+    .plan ul {
+      list-style: none;
+      text-align: left;
+      flex: 1;
+    }
+    .plan ul li { padding: 6px 0; }
+    .plan ul li::before {
+      content: "✓";
+      color: var(--accent);
+      font-weight: 700;
+      margin-right: 10px;
+    }
+
+    /* ===== Контакты ===== */
+    .contacts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 32px;
+    }
+    .contacts-info p { margin-bottom: 12px; }
+    .contacts-info a { color: var(--accent); text-decoration: none; }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1px solid #d9dfe8;
+      border-radius: 10px;
+      font: inherit;
+      background: var(--bg-light);
+      transition: border-color .2s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    textarea { resize: vertical; min-height: 110px; }
+    .btn-submit {
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      cursor: pointer;
+    }
+    .btn-submit:hover { background: var(--accent-dark); }
+
+    /* ===== Подвал ===== */
+    footer {
+      background: var(--dark);
+      color: #9aa3b0;
+      padding: 28px 0;
+      text-align: center;
+      font-size: .9rem;
+    }
+
+    /* ===== Адаптив ===== */
+    @media (max-width: 768px) {
+      section { padding: 56px 0; }
+
+      .burger { display: flex; }
+      .nav-links {
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        gap: 0;
+        background: var(--white);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, .1);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .3s ease;
+      }
+      .nav-links a {
+        display: block;
+        padding: 14px 24px;
+        border-bottom: 1px solid var(--bg-light);
+      }
+      /* Открытие меню по чекбоксу */
+      .burger-toggle:checked ~ .nav-links { max-height: 320px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Шапка с навигацией -->
+  <header>
+    <div class="container nav">
+      <a href="#hero" class="logo">FitTrack</a>
+      <input type="checkbox" id="burger-toggle" class="burger-toggle">
+      <label for="burger-toggle" class="burger" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </label>
+      <ul class="nav-links">
+        <li><a href="#about">О сервисе</a></li>
+        <li><a href="#features">Возможности</a></li>
+        <li><a href="#pricing">Тарифы</a></li>
+        <li><a href="#contacts">Контакты</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- 2. Главный экран -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <h1>Тренируйся умнее, прогрессируй быстрее</h1>
+      <p>FitTrack — фитнес-трекер для студентов и любителей спорта: учитывай тренировки, следи за прогрессом и следуй готовым программам занятий.</p>
+      <a href="#pricing" class="btn btn-primary">Начать бесплатно</a>
+    </div>
+  </section>
+
+  <!-- 3. О сервисе -->
+  <section id="about">
+    <div class="container">
+      <h2>О сервисе</h2>
+      <p class="section-sub">FitTrack создан для тех, кто совмещает учёбу, работу и спорт — всё о тренировках в одном приложении.</p>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>Планируйте недели занятий заранее, отмечайте выполненные подходы и наглядно отслеживайте, как меняются ваши показатели.</p>
+          <p>Умные программы подстраиваются под ваш уровень: от новичка, который делает первые шаги в зале, до опытного атлета.</p>
+          <p>Учёба и спорт перестают конкурировать — короткие сессии и напоминания помогают держать ритм даже в сессию и дедлайны.</p>
+        </div>
+        <div class="about-card">
+          <div class="num">120 000+</div>
+          <span>активных пользователей</span>
+        </div>
+        <div class="about-card">
+          <div class="num">350+</div>
+          <span>готовых программ занятий</span>
+        </div>
+        <div class="about-card">
+          <div class="num">4.8</div>
+          <span>средняя оценка в сторах</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Возможности -->
+  <section id="features">
+    <div class="container">
+      <h2>Возможности</h2>
+      <p class="section-sub">Всё, что нужно для последовательного прогресса — без лишних сложностей.</p>
+      <div class="features-grid">
+        <div class="feature">
+          <div class="icon">🏋️</div>
+          <h3>Учёт тренировок</h3>
+          <p>Записывайте упражнения, подходы и вес. Приложение само подскажет, когда пора повышать нагрузку.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">📈</div>
+          <h3>Отслеживание прогресса</h3>
+          <p>Графики выносливости, силы и веса. Видно, как растут результаты по неделям и месяцам.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">📅</div>
+          <h3>Программы занятий</h3>
+          <p>Готовые планы на 4, 8 и 12 недель — для зала, бега, йоги и домашних тренировок с весом тела.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">⏰</div>
+          <h3>Умные напоминания</h3>
+          <p>Приложение подберёт удобное время для тренировок и не даст пропустить занятие в плотном расписании.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">👥</div>
+          <h3>Команды и вызовы</h3>
+          <p>Тренируйтесь с друзьями и одногруппниками: челленджи, совместный прогресс и дружеское соперничество.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">📴</div>
+          <h3>Оффлайн-режим</h3>
+          <p>Тренировки в зале без интернета? Данные синхронизируются, как только появится сеть.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Тарифы -->
+  <section id="pricing">
+    <div class="container">
+      <h2>Тарифы</h2>
+      <p class="section-sub">Начните бесплатно — переходите на Pro, когда почувствуете вкус к прогрессу.</p>
+      <div class="pricing-grid">
+        <div class="plan">
+          <h3>Базовый</h3>
+          <div class="price">0 ₽ <small>навсегда</small></div>
+          <ul>
+            <li>Учёт тренировок</li>
+            <li>3 готовые программы</li>
+            <li>Базовая статистика</li>
+            <li>1 пользователь</li>
+          </ul>
+          <a href="#contacts" class="btn btn-outline">Попробовать</a>
+        </div>
+        <div class="plan popular">
+          <h3>Pro</h3>
+          <div class="price">299 ₽ <small>/ мес</small></div>
+          <ul>
+            <li>Всё из Базового</li>
+            <li>350+ программ занятий</li>
+            <li>Подробные графики прогресса</li>
+            <li>Умные напоминания</li>
+            <li>Оффлайн-режим</li>
+          </ul>
+          <a href="#contacts" class="btn btn-primary">Выбрать Pro</a>
+        </div>
+        <div class="plan">
+          <h3>Команда</h3>
+          <div class="price">1 990 ₽ <small>/ мес</small></div>
+          <ul>
+            <li>Всё из Pro</li>
+            <li>До 20 участников</li>
+            <li>Командные челленджи</li>
+            <li>Групповые программы</li>
+            <li>Поддержка в приоритете</li>
+          </ul>
+          <a href="#contacts" class="btn btn-outline">Связаться</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Контакты -->
+  <section id="contacts">
+    <div class="container">
+      <h2>Контакты</h2>
+      <p class="section-sub">Остались вопросы? Напишите нам — отвечаем в течение рабочего дня.</p>
+      <div class="contacts-grid">
+        <div class="contacts-info">
+          <p><strong>Email:</strong> <a href="mailto:hello@fittrack.ru">hello@fittrack.ru</a></p>
+          <p><strong>Телефон:</strong> <a href="tel:+78005553535">8 (800) 555-35-35</a></p>
+          <p><strong>Адрес:</strong> Санкт-Петербург, ул. Спортивная, 14</p>
+          <p><strong>Часы работы:</strong> ежедневно 9:00–21:00</p>
+        </div>
+        <form>
+          <input type="text" name="name" placeholder="Ваше имя" required>
+          <input type="email" name="email" placeholder="Email" required>
+          <textarea name="message" placeholder="Ваш вопрос" required></textarea>
+          <button type="submit" class="btn btn-submit">Отправить</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">© 2026 FitTrack. Тренируйтесь с удовольствием.</div>
+  </footer>
+
+</body>
+</html>
